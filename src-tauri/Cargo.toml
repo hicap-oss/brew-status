@@ -1,6 +1,6 @@
 [package]
 name = "brew-status"
-version = "0.2.1"
+version = "0.2.2"
 description = "Claude Code Usage Tray App"
 authors = ["you"]
 edition = "2021"
