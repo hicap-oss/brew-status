@@ -9,7 +9,7 @@ import {
   formatResetTime,
 } from "./shared/formatters";
 import { renderBarChart, renderHourlyHeatmap } from "./shared/chart";
-import type { StatsCache, HistoryEntry, UsageLimits, LimitEntry, ProfileResponse } from "./shared/types";
+import type { StatsCache, HistoryEntry, UsageLimits, LimitEntry, ProfileResponse, UpdateResult } from "./shared/types";
 
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
@@ -271,6 +271,38 @@ document.getElementById("btn-close")!.addEventListener("click", async () => {
   await win.close();
 });
 
+// About panel
+async function loadAbout(): Promise<void> {
+  try {
+    const version = await invoke<string>("get_app_version");
+    document.getElementById("about-version")!.textContent = `v${version}`;
+  } catch (e) {
+    console.error("Failed to load app version:", e);
+  }
+}
+
+document.getElementById("about-check-update")!.addEventListener("click", async () => {
+  const btn = document.getElementById("about-check-update") as HTMLButtonElement;
+  const status = document.getElementById("about-status")!;
+
+  btn.disabled = true;
+  status.textContent = "Checking...";
+
+  try {
+    const result = await invoke<UpdateResult>("check_for_updates");
+    if (result.updateAvailable) {
+      status.textContent = `v${result.version} available!`;
+    } else {
+      status.textContent = "You're up to date";
+    }
+  } catch (e) {
+    status.textContent = "Check failed";
+    console.error("Update check failed:", e);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 // Refresh buttons
 document.getElementById("dashboard-refresh-limits")!.addEventListener("click", () => {
   const btn = document.getElementById("dashboard-refresh-limits")!;
@@ -300,3 +332,4 @@ loadProfile();
 loadStats();
 loadHistory();
 loadLimits();
+loadAbout();

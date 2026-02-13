@@ -140,6 +140,13 @@ pub struct HistoryEntry {
     pub session_id: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateResult {
+    pub update_available: bool,
+    pub version: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TodaySummary {

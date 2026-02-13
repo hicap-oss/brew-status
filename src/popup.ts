@@ -238,8 +238,10 @@ document.getElementById("popup-refresh-other-limits")!.addEventListener("click",
 });
 
 
-// Live updates
+// Live updates — refresh on stats cache changes AND new history entries
+// (today's data may be computed from session files when the cache is stale)
 listen("stats-updated", () => loadData());
+listen("history-updated", () => loadData());
 
 window.addEventListener("resize", schedulePopupResize);
 

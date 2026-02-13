@@ -443,6 +443,69 @@ body {
   text-align: right;
 }
 
+/* About panel */
+.about-panel {
+  grid-column: 1 / -1;
+}
+
+.about-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.about-row-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.about-label {
+  font-size: 13px;
+  color: #c0c0e0;
+}
+
+.about-label #about-version {
+  color: #6b6b8a;
+}
+
+.about-btn {
+  padding: 5px 14px;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  background: transparent;
+  color: #a78bfa;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.about-btn:hover {
+  background: #7c3aed;
+  color: #fff;
+  border-color: #7c3aed;
+}
+
+.about-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.about-status {
+  font-size: 11px;
+  color: #6b6b8a;
+  white-space: nowrap;
+}
+
+.about-note {
+  font-size: 10px;
+  color: #4a4a6a;
+  margin-top: 8px;
+  display: block;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

@@ -24,6 +24,8 @@ pub fn run() {
             commands::resize_popup,
             commands::get_usage_limits,
             commands::get_profile,
+            commands::get_app_version,
+            commands::check_for_updates,
         ])
         .setup(|app| {
             let handle = app.handle().clone();
@@ -74,6 +76,31 @@ fn write_check_timestamp() {
     }
 }
 
+pub async fn prompt_install(update: tauri_plugin_updater::Update, handle: tauri::AppHandle) {
+    let version = update.version.clone();
+
+    let (sender, receiver) = std::sync::mpsc::channel();
+    handle
+        .dialog()
+        .message(format!(
+            "Brew Status v{version} is available.\n\nWould you like to install the update now?"
+        ))
+        .title("Update Available")
+        .kind(MessageDialogKind::Info)
+        .buttons(MessageDialogButtons::OkCancelCustom("Install".into(), "Later".into()))
+        .show(move |confirmed| {
+            let _ = sender.send(confirmed);
+        });
+
+    let confirmed = receiver.recv().unwrap_or(false);
+
+    if confirmed {
+        if let Err(e) = update.download_and_install(|_, _| {}, || {}).await {
+            eprintln!("update install error: {e}");
+        }
+    }
+}
+
 async fn check_for_updates(handle: tauri::AppHandle) {
     if !should_check() {
         return;
@@ -111,25 +138,5 @@ async fn check_for_updates(handle: tauri::AppHandle) {
 
     write_check_timestamp();
 
-    // Ask user whether to install via dialog with channel
-    let (sender, receiver) = std::sync::mpsc::channel();
-    handle
-        .dialog()
-        .message(format!(
-            "Brew Status v{version} is available.\n\nWould you like to install the update now?"
-        ))
-        .title("Update Available")
-        .kind(MessageDialogKind::Info)
-        .buttons(MessageDialogButtons::OkCancelCustom("Install".into(), "Later".into()))
-        .show(move |confirmed| {
-            let _ = sender.send(confirmed);
-        });
-
-    let confirmed = receiver.recv().unwrap_or(false);
-
-    if confirmed {
-        if let Err(e) = update.download_and_install(|_, _| {}, || {}).await {
-            eprintln!("update install error: {e}");
-        }
-    }
+    prompt_install(update, handle).await;
 }

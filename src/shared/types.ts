@@ -105,6 +105,11 @@ export interface LimitEntry {
   resets_at: string | null;
 }
 
+export interface UpdateResult {
+  updateAvailable: boolean;
+  version: string | null;
+}
+
 export interface ExtraUsage {
   is_enabled: boolean;
   monthly_limit: number | null;
