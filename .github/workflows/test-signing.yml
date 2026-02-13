@@ -1,0 +1,48 @@
+name: Test Signing Key
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if secrets are set
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          echo "=== TAURI_SIGNING_PRIVATE_KEY ==="
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "ERROR: Secret is EMPTY or not set"
+          else
+            echo "Secret is set (length: ${#TAURI_SIGNING_PRIVATE_KEY} chars)"
+            echo "First 30 chars: ${TAURI_SIGNING_PRIVATE_KEY:0:30}..."
+            echo "Starts with 'dW50cnVzdGVk': $(echo "$TAURI_SIGNING_PRIVATE_KEY" | grep -qc '^dW50cnVzdGVk' && echo YES || echo NO)"
+          fi
+
+          echo ""
+          echo "=== TAURI_SIGNING_PRIVATE_KEY_PASSWORD ==="
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" ]; then
+            echo "WARNING: Password is EMPTY or not set"
+          else
+            echo "Password is set (length: ${#TAURI_SIGNING_PRIVATE_KEY_PASSWORD} chars)"
+          fi
+
+      - name: Test signing with Tauri CLI
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          echo "test file for signing" > testfile.txt
+          npx @tauri-apps/cli signer sign testfile.txt --key "$TAURI_SIGNING_PRIVATE_KEY" --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" 2>&1 && echo "SIGNING OK" || echo "SIGNING FAILED"
+          if [ -f testfile.txt.sig ]; then
+            echo "Signature file created successfully"
+            cat testfile.txt.sig
+          else
+            echo "ERROR: No signature file produced"
+          fi
