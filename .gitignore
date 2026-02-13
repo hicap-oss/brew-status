@@ -18,6 +18,9 @@ Desktop.ini
 # Claude
 .claude/
 
+# Signing keys
+~/.tauri/
+
 # Misc
 nul
 *.log
