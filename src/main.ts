@@ -6,9 +6,10 @@ import {
   formatShortDate,
   timeAgo,
   modelDisplayName,
+  formatResetTime,
 } from "./shared/formatters";
 import { renderBarChart, renderHourlyHeatmap } from "./shared/chart";
-import type { StatsCache, HistoryEntry } from "./shared/types";
+import type { StatsCache, HistoryEntry, UsageLimits, LimitEntry } from "./shared/types";
 
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
@@ -165,6 +166,55 @@ function escapeHtml(text: string): string {
   return el.innerHTML;
 }
 
+function renderDashboardLimitBar(label: string, entry: LimitEntry): string {
+  const pct = Math.round(entry.utilization);
+  const fillClass = pct >= 90 ? "critical" : pct >= 70 ? "high" : "";
+  const resetText = entry.resets_at ? formatResetTime(entry.resets_at) : "";
+
+  return `
+    <div class="dashboard-limit-item">
+      <div class="dashboard-limit-header">
+        <span class="dashboard-limit-label">${label}</span>
+        <span class="dashboard-limit-pct">${pct}%</span>
+      </div>
+      <div class="dashboard-limit-bar-track">
+        <div class="dashboard-limit-bar-fill ${fillClass}" style="width: ${Math.min(pct, 100)}%"></div>
+      </div>
+      ${resetText ? `<span class="dashboard-limit-reset">${resetText}</span>` : ""}
+    </div>`;
+}
+
+async function loadLimits(): Promise<void> {
+  const container = document.getElementById("dashboard-limits")!;
+
+  try {
+    const limits = await invoke<UsageLimits>("get_usage_limits");
+    let html = "";
+
+    if (limits.five_hour) {
+      html += renderDashboardLimitBar("Current Session", limits.five_hour);
+    }
+    if (limits.seven_day) {
+      html += renderDashboardLimitBar("All Models (Weekly)", limits.seven_day);
+    }
+    if (limits.seven_day_sonnet) {
+      html += renderDashboardLimitBar("Sonnet Only", limits.seven_day_sonnet);
+    }
+    if (limits.seven_day_opus) {
+      html += renderDashboardLimitBar("Opus (Weekly)", limits.seven_day_opus);
+    }
+
+    if (!html) {
+      html = '<div class="limits-loading">No usage limits available</div>';
+    }
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div class="limits-error">Failed to load limits. Check your OAuth credentials.</div>';
+    console.error("Failed to load limits:", e);
+  }
+}
+
 // Titlebar controls
 document.getElementById("btn-minimize")!.addEventListener("click", async () => {
   const win = getCurrentWebviewWindow();
@@ -175,6 +225,14 @@ document.getElementById("btn-close")!.addEventListener("click", async () => {
   const win = getCurrentWebviewWindow();
   await win.close();
 });
+
+// Refresh buttons
+document.getElementById("dashboard-refresh-limits")!.addEventListener("click", () => {
+  const btn = document.getElementById("dashboard-refresh-limits")!;
+  btn.classList.add("spinning");
+  loadLimits().finally(() => btn.classList.remove("spinning"));
+});
+
 
 // Chart toggle buttons
 document.querySelectorAll(".toggle-btn").forEach((btn) => {
@@ -195,3 +253,4 @@ listen("history-updated", () => loadHistory());
 // Initial load
 loadStats();
 loadHistory();
+loadLimits();

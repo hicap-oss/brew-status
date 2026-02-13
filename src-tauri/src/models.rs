@@ -1,6 +1,36 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+// OAuth credentials from ~/.claude/.credentials.json
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Credentials {
+    pub claude_ai_oauth: Option<OAuthToken>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
+pub struct OAuthToken {
+    pub access_token: String,
+    pub expires_at: i64,
+}
+
+// Usage limits from Anthropic API
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsageLimits {
+    pub five_hour: Option<LimitEntry>,
+    pub seven_day: Option<LimitEntry>,
+    pub seven_day_opus: Option<LimitEntry>,
+    pub seven_day_sonnet: Option<LimitEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LimitEntry {
+    pub utilization: f64,
+    pub resets_at: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StatsCache {

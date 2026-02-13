@@ -105,6 +105,125 @@ body {
   letter-spacing: 0.5px;
 }
 
+/* Usage Limits panel */
+.limits-panel {
+  grid-column: 1 / -1;
+}
+
+.limits-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.limits-panel-header h2 {
+  margin-bottom: 0;
+}
+
+.refresh-btn {
+  background: none;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  color: #6b6b8a;
+  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.refresh-btn:hover {
+  border-color: #7c3aed;
+  color: #a78bfa;
+}
+
+.refresh-btn.spinning {
+  animation: spin 0.8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dashboard-limits {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.dashboard-limits .limits-loading,
+.dashboard-limits .limits-error {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #6b6b8a;
+  font-size: 12px;
+  padding: 12px 0;
+}
+
+.dashboard-limits .limits-error {
+  color: #f87171;
+}
+
+.dashboard-limit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #1a1a2e;
+  border-radius: 8px;
+}
+
+.dashboard-limit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.dashboard-limit-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c0c0e0;
+}
+
+.dashboard-limit-pct {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e0e0e0;
+}
+
+.dashboard-limit-bar-track {
+  height: 10px;
+  background: #2a2a4a;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.dashboard-limit-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: #3b82f6;
+  transition: width 0.4s ease;
+}
+
+.dashboard-limit-bar-fill.high {
+  background: #f59e0b;
+}
+
+.dashboard-limit-bar-fill.critical {
+  background: #ef4444;
+}
+
+.dashboard-limit-reset {
+  font-size: 10px;
+  color: #6b6b8a;
+}
+
 /* Token usage panel */
 .token-panel {
   grid-column: 1;

@@ -47,3 +47,26 @@ export function modelDisplayName(model: string): string {
   if (model.includes("haiku")) return "Haiku";
   return model;
 }
+
+export function formatResetTime(isoDate: string): string {
+  const reset = new Date(isoDate);
+  const now = new Date();
+  const diffMs = reset.getTime() - now.getTime();
+
+  if (diffMs <= 0) return "Resetting...";
+
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHr = Math.floor(diffMin / 60);
+  const remainMin = diffMin % 60;
+
+  if (diffHr < 24) {
+    if (diffHr > 0) return `Resets in ${diffHr} hr ${remainMin} min`;
+    return `Resets in ${remainMin} min`;
+  }
+
+  return "Resets " + reset.toLocaleDateString("en-US", {
+    weekday: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}

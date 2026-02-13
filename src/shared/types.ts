@@ -63,3 +63,15 @@ export interface DailyTokenTotal {
   total: number;
   byModel: Record<string, number>;
 }
+
+export interface UsageLimits {
+  five_hour: LimitEntry | null;
+  seven_day: LimitEntry | null;
+  seven_day_opus: LimitEntry | null;
+  seven_day_sonnet: LimitEntry | null;
+}
+
+export interface LimitEntry {
+  utilization: number;
+  resets_at: string | null;
+}

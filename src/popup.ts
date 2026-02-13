@@ -1,6 +1,5 @@
-import { formatTokenCount, formatNumber, formatShortDate, modelDisplayName } from "./shared/formatters";
-import { renderMiniBar } from "./shared/chart";
-import type { TodaySummary, StatsCache } from "./shared/types";
+import { formatTokenCount, formatNumber, modelDisplayName, formatResetTime } from "./shared/formatters";
+import type { TodaySummary, StatsCache, UsageLimits, LimitEntry } from "./shared/types";
 
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
@@ -82,20 +81,88 @@ async function loadData(): Promise<void> {
     document.getElementById("messages-today")!.textContent = formatNumber(summary.messages);
     document.getElementById("tool-calls-today")!.textContent = formatNumber(summary.toolCalls);
     document.getElementById("total-sessions")!.textContent = formatNumber(stats.totalSessions);
-
-    // Mini chart
-    const canvas = document.getElementById("mini-chart") as HTMLCanvasElement;
-    const values = stats.dailyModelTokens.map((d) => {
-      return Object.values(d.tokensByModel).reduce((a, b) => a + b, 0);
-    });
-    const labels = stats.dailyModelTokens.map((d) => formatShortDate(d.date));
-    renderMiniBar(canvas, values, labels);
   } catch (e) {
     console.error("Failed to load data:", e);
   } finally {
     schedulePopupResize();
   }
 }
+
+function renderLimitBar(label: string, entry: LimitEntry): string {
+  const pct = Math.round(entry.utilization);
+  const fillClass = pct >= 90 ? "critical" : pct >= 70 ? "high" : "";
+  const resetText = entry.resets_at ? formatResetTime(entry.resets_at) : "";
+
+  return `
+    <div class="limit-item">
+      <div class="limit-header">
+        <span class="limit-label">${label}</span>
+        <span class="limit-pct">${pct}%</span>
+      </div>
+      <div class="limit-bar-track">
+        <div class="limit-bar-fill ${fillClass}" style="width: ${Math.min(pct, 100)}%"></div>
+      </div>
+      ${resetText ? `<span class="limit-reset">${resetText}</span>` : ""}
+    </div>`;
+}
+
+async function loadLimits(): Promise<void> {
+  const container = document.getElementById("limits-content")!;
+  container.innerHTML = '<div class="limits-loading">Loading limits...</div>';
+
+  try {
+    const limits = await invoke<UsageLimits>("get_usage_limits");
+    let html = "";
+
+    if (limits.five_hour) {
+      html += renderLimitBar("Current Session", limits.five_hour);
+    }
+    if (limits.seven_day) {
+      html += renderLimitBar("All Models (Weekly)", limits.seven_day);
+    }
+    if (limits.seven_day_sonnet) {
+      html += renderLimitBar("Sonnet Only", limits.seven_day_sonnet);
+    }
+    if (limits.seven_day_opus) {
+      html += renderLimitBar("Opus (Weekly)", limits.seven_day_opus);
+    }
+
+    if (!html) {
+      html = '<div class="limits-loading">No usage limits available</div>';
+    }
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div class="limits-error">Failed to load limits. Check your OAuth credentials.</div>`;
+    console.error("Failed to load limits:", e);
+  } finally {
+    schedulePopupResize();
+  }
+}
+
+// Tab switching
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const tab = (btn as HTMLElement).dataset.tab!;
+    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+    document.getElementById(`panel-${tab}`)!.classList.remove("hidden");
+
+    // Force resize since content height changed
+    lastRequestedHeight = null;
+    schedulePopupResize();
+  });
+});
+
+// Refresh buttons
+document.getElementById("popup-refresh-limits")!.addEventListener("click", () => {
+  const btn = document.getElementById("popup-refresh-limits")!;
+  btn.classList.add("spinning");
+  loadLimits().finally(() => btn.classList.remove("spinning"));
+});
+
 
 // Live updates
 listen("stats-updated", () => loadData());
@@ -110,4 +177,5 @@ if ("fonts" in document) {
 
 // Initial load
 loadData();
+loadLimits();
 schedulePopupResize();

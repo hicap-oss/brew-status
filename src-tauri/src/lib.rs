@@ -13,6 +13,7 @@ pub fn run() {
             commands::get_history,
             commands::get_daily_token_totals,
             commands::resize_popup,
+            commands::get_usage_limits,
         ])
         .setup(|app| {
             let handle = app.handle().clone();

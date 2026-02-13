@@ -17,6 +17,17 @@
       </header>
 
       <main class="dashboard">
+        <!-- Usage Limits -->
+        <section class="panel limits-panel">
+          <div class="limits-panel-header">
+            <h2>Usage Limits</h2>
+            <button class="refresh-btn" id="dashboard-refresh-limits" title="Refresh">&#x21bb;</button>
+          </div>
+          <div class="dashboard-limits" id="dashboard-limits">
+            <div class="limits-loading">Loading limits...</div>
+          </div>
+        </section>
+
         <!-- Top row: 2 columns -->
         <section class="panel token-panel">
           <h2>Token Usage</h2>

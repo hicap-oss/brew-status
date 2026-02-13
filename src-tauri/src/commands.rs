@@ -1,4 +1,4 @@
-use crate::models::{HistoryEntry, StatsCache, TodaySummary};
+use crate::models::{Credentials, HistoryEntry, StatsCache, TodaySummary, UsageLimits};
 use std::collections::HashMap;
 use std::fs;
 use std::io::{BufRead, BufReader};
@@ -108,4 +108,37 @@ pub fn resize_popup(app: AppHandle, height: f64) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub async fn get_usage_limits() -> Result<UsageLimits, String> {
+    let creds_path = claude_dir().join(".credentials.json");
+    let creds_data = fs::read_to_string(&creds_path)
+        .map_err(|e| format!("Failed to read credentials: {}", e))?;
+    let creds: Credentials = serde_json::from_str(&creds_data)
+        .map_err(|e| format!("Failed to parse credentials: {}", e))?;
+
+    let oauth = creds
+        .claude_ai_oauth
+        .ok_or_else(|| "No OAuth token found in credentials".to_string())?;
+
+    let client = reqwest::Client::new();
+    let resp = client
+        .get("https://api.anthropic.com/api/oauth/usage")
+        .header("Authorization", format!("Bearer {}", oauth.access_token))
+        .header("anthropic-beta", "oauth-2025-04-20")
+        .send()
+        .await
+        .map_err(|e| format!("Failed to fetch usage limits: {}", e))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("API returned status {}", resp.status()));
+    }
+
+    let limits: UsageLimits = resp
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse usage limits: {}", e))?;
+
+    Ok(limits)
 }

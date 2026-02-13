@@ -13,34 +13,46 @@
         <span id="today-date" class="date-label"></span>
       </header>
 
-      <div class="hero-stat">
-        <span class="hero-value" id="total-tokens">--</span>
-        <span class="hero-label">tokens today</span>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="limits">Limits</button>
+        <button class="tab-btn" data-tab="usage">Usage</button>
       </div>
 
-      <div class="model-breakdown" id="model-breakdown"></div>
+      <div class="tab-panel hidden" id="panel-usage">
+        <div class="hero-stat">
+          <span class="hero-value" id="total-tokens">--</span>
+          <span class="hero-label">tokens today</span>
+        </div>
 
-      <div class="mini-chart-section">
-        <h3>7-Day Tokens</h3>
-        <canvas id="mini-chart" height="60"></canvas>
+        <div class="model-breakdown" id="model-breakdown"></div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="sessions-today">--</div>
+            <div class="stat-label">Sessions</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="messages-today">--</div>
+            <div class="stat-label">Messages</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="tool-calls-today">--</div>
+            <div class="stat-label">Tool Calls</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-sessions">--</div>
+            <div class="stat-label">All-time Sessions</div>
+          </div>
+        </div>
       </div>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="sessions-today">--</div>
-          <div class="stat-label">Sessions</div>
+      <div class="tab-panel" id="panel-limits">
+        <div class="limits-header">
+          <span></span>
+          <button class="refresh-btn" id="popup-refresh-limits" title="Refresh">&#x21bb;</button>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="messages-today">--</div>
-          <div class="stat-label">Messages</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="tool-calls-today">--</div>
-          <div class="stat-label">Tool Calls</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="total-sessions">--</div>
-          <div class="stat-label">All-time Sessions</div>
+        <div class="limits-content" id="limits-content">
+          <div class="limits-loading">Loading limits...</div>
         </div>
       </div>
 
