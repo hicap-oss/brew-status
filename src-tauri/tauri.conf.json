@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/refs/heads/dev/crates/tauri-schema-generator/schemas/config.schema.json",
   "productName": "brew-status",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "identifier": "com.brewstatus.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -19,6 +19,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
