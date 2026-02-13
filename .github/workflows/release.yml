@@ -11,25 +11,45 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: latest
 
-      - run: pnpm install
+      - name: Install dependencies
+        run: pnpm install
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
-      - uses: tauri-apps/tauri-action@v0.6
+      - name: Verify signing key
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "::error::TAURI_SIGNING_PRIVATE_KEY is not set"
+            exit 1
+          fi
+          echo "Signing key: ${#TAURI_SIGNING_PRIVATE_KEY} chars"
+          echo "Password: ${#TAURI_SIGNING_PRIVATE_KEY_PASSWORD} chars"
+
+      - name: Build and release
+        uses: tauri-apps/tauri-action@v0.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -41,3 +61,41 @@ jobs:
           releaseDraft: false
           prerelease: false
           updaterJsonPreferNsis: true
+          args: --verbose
+
+      - name: Verify release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(jq -r '.version' src-tauri/tauri.conf.json)
+          echo "## Release v${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          ASSETS=$(gh release view "v${VERSION}" --json assets --jq '.assets[].name' 2>/dev/null || echo "")
+          if [ -z "$ASSETS" ]; then
+            echo "::warning::No release assets found"
+            echo "No release assets found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Assets" >> $GITHUB_STEP_SUMMARY
+            echo "$ASSETS" | while read -r name; do
+              echo "- \`${name}\`" >> $GITHUB_STEP_SUMMARY
+            done
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if echo "$ASSETS" | grep -q "latest.json"; then
+            echo "Updater JSON: present" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::warning::latest.json not found in release"
+            echo "Updater JSON: **MISSING**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check bundle directory
+        if: always()
+        shell: bash
+        run: |
+          echo "## Bundle files on disk" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          find src-tauri/target/release/bundle -type f 2>/dev/null | sort >> $GITHUB_STEP_SUMMARY || echo "No bundle directory found" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
