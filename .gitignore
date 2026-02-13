@@ -1,0 +1,23 @@
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+*.exe
+*.msi
+*.nsis
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Claude
+.claude/
+
+# Misc
+nul
+*.log

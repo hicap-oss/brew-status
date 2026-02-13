@@ -1,0 +1,23 @@
+[package]
+name = "brew-status"
+version = "0.1.0"
+description = "Claude Code Usage Tray App"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "brew_status_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+notify = "7"
+dirs = "6"
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1", features = ["sync"] }

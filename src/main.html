@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brew Status - Dashboard</title>
+    <link rel="stylesheet" href="./main.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="titlebar" data-tauri-drag-region>
+        <span class="titlebar-title" data-tauri-drag-region>Brew Status</span>
+        <div class="titlebar-controls">
+          <button class="titlebar-btn minimize" id="btn-minimize">&#x2013;</button>
+          <button class="titlebar-btn close" id="btn-close">&#x2715;</button>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <!-- Top row: 2 columns -->
+        <section class="panel token-panel">
+          <h2>Token Usage</h2>
+          <div id="token-usage-content"></div>
+        </section>
+
+        <section class="panel session-panel">
+          <h2>Session Stats</h2>
+          <div class="session-stats-grid" id="session-stats"></div>
+          <h3>Hourly Activity</h3>
+          <canvas id="heatmap-canvas" height="50"></canvas>
+        </section>
+
+        <!-- Full width: 7-day chart -->
+        <section class="panel chart-panel">
+          <div class="chart-header">
+            <h2>7-Day Activity</h2>
+            <div class="chart-toggles">
+              <button class="toggle-btn active" data-metric="tokens">Tokens</button>
+              <button class="toggle-btn" data-metric="messages">Messages</button>
+              <button class="toggle-btn" data-metric="toolCalls">Tool Calls</button>
+            </div>
+          </div>
+          <canvas id="activity-chart" height="200"></canvas>
+        </section>
+
+        <!-- Full width: Recent history -->
+        <section class="panel history-panel">
+          <h2>Recent History</h2>
+          <div class="history-list" id="history-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

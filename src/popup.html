@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brew Status</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <div class="popup-container">
+      <header class="popup-header">
+        <h1>Claude Code Usage</h1>
+        <span id="today-date" class="date-label"></span>
+      </header>
+
+      <div class="hero-stat">
+        <span class="hero-value" id="total-tokens">--</span>
+        <span class="hero-label">tokens today</span>
+      </div>
+
+      <div class="model-breakdown" id="model-breakdown"></div>
+
+      <div class="mini-chart-section">
+        <h3>7-Day Tokens</h3>
+        <canvas id="mini-chart" height="60"></canvas>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="sessions-today">--</div>
+          <div class="stat-label">Sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="messages-today">--</div>
+          <div class="stat-label">Messages</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="tool-calls-today">--</div>
+          <div class="stat-label">Tool Calls</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-sessions">--</div>
+          <div class="stat-label">All-time Sessions</div>
+        </div>
+      </div>
+
+    </div>
+
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>
