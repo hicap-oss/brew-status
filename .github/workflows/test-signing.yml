@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           echo "test file for signing" > testfile.txt
-          npx @tauri-apps/cli signer sign testfile.txt --key "$TAURI_SIGNING_PRIVATE_KEY" --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" 2>&1 && echo "SIGNING OK" || echo "SIGNING FAILED"
+          npx @tauri-apps/cli signer sign testfile.txt --private-key "$TAURI_SIGNING_PRIVATE_KEY" --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" 2>&1 && echo "SIGNING OK" || echo "SIGNING FAILED"
           if [ -f testfile.txt.sig ]; then
             echo "Signature file created successfully"
             cat testfile.txt.sig
