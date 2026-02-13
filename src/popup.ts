@@ -154,18 +154,6 @@ async function loadLimits(): Promise<void> {
     if (limits.seven_day_opus) {
       html += renderLimitBar("Opus (Weekly)", limits.seven_day_opus);
     }
-    if (limits.seven_day_cowork) {
-      html += renderLimitBar("Cowork (Weekly)", limits.seven_day_cowork);
-    }
-    if (limits.seven_day_oauth_apps) {
-      html += renderLimitBar("OAuth Apps (Weekly)", limits.seven_day_oauth_apps);
-    }
-    if (limits.extra_usage?.is_enabled && limits.extra_usage.utilization !== null) {
-      html += renderLimitBar("Extra Usage", {
-        utilization: limits.extra_usage.utilization,
-        resets_at: null,
-      });
-    }
 
     if (!html) {
       html = '<div class="limits-loading">No usage limits available</div>';
@@ -175,6 +163,46 @@ async function loadLimits(): Promise<void> {
   } catch (e) {
     container.innerHTML = `<div class="limits-error">Failed to load limits. Check your OAuth credentials.</div>`;
     console.error("Failed to load limits:", e);
+  } finally {
+    schedulePopupResize();
+  }
+}
+
+async function loadOtherLimits(): Promise<void> {
+  const container = document.getElementById("other-limits-content")!;
+  container.innerHTML = '<div class="limits-loading">Loading limits...</div>';
+
+  try {
+    const limits = await invoke<UsageLimits>("get_usage_limits");
+    let html = "";
+
+    html += renderLimitBar("Cowork (Weekly)", limits.seven_day_cowork ?? { utilization: 0, resets_at: null });
+    html += renderLimitBar("OAuth Apps (Weekly)", limits.seven_day_oauth_apps ?? { utilization: 0, resets_at: null });
+    if (limits.extra_usage) {
+      if (limits.extra_usage.is_enabled) {
+        html += renderLimitBar("Extra Usage", {
+          utilization: limits.extra_usage.utilization ?? 0,
+          resets_at: null,
+        });
+      } else {
+        html += `<div class="limit-item">
+          <div class="limit-header">
+            <span class="limit-label">Extra Usage</span>
+            <span class="limit-pct disabled">Off</span>
+          </div>
+          <div class="limit-bar-track"><div class="limit-bar-fill" style="width:0%"></div></div>
+        </div>`;
+      }
+    }
+
+    if (!html) {
+      html = '<div class="limits-loading">No other limits available</div>';
+    }
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div class="limits-error">Failed to load limits. Check your OAuth credentials.</div>`;
+    console.error("Failed to load other limits:", e);
   } finally {
     schedulePopupResize();
   }
@@ -203,6 +231,12 @@ document.getElementById("popup-refresh-limits")!.addEventListener("click", () =>
   loadLimits().finally(() => btn.classList.remove("spinning"));
 });
 
+document.getElementById("popup-refresh-other-limits")!.addEventListener("click", () => {
+  const btn = document.getElementById("popup-refresh-other-limits")!;
+  btn.classList.add("spinning");
+  loadOtherLimits().finally(() => btn.classList.remove("spinning"));
+});
+
 
 // Live updates
 listen("stats-updated", () => loadData());
@@ -219,4 +253,5 @@ if ("fonts" in document) {
 loadProfile();
 loadData();
 loadLimits();
+loadOtherLimits();
 schedulePopupResize();

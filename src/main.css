@@ -212,6 +212,11 @@ body {
   color: #e0e0e0;
 }
 
+.dashboard-limit-pct.disabled {
+  font-size: 14px;
+  color: #6b6b8a;
+}
+
 .dashboard-limit-bar-track {
   height: 10px;
   background: #2a2a4a;

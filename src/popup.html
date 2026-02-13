@@ -17,7 +17,8 @@
       </header>
 
       <div class="tab-bar">
-        <button class="tab-btn active" data-tab="limits">Limits</button>
+        <button class="tab-btn active" data-tab="limits">Claude Limits</button>
+        <button class="tab-btn" data-tab="other-limits">Other</button>
         <button class="tab-btn" data-tab="usage">Usage</button>
       </div>
 
@@ -55,6 +56,16 @@
           <button class="refresh-btn" id="popup-refresh-limits" title="Refresh">&#x21bb;</button>
         </div>
         <div class="limits-content" id="limits-content">
+          <div class="limits-loading">Loading limits...</div>
+        </div>
+      </div>
+
+      <div class="tab-panel hidden" id="panel-other-limits">
+        <div class="limits-header">
+          <span></span>
+          <button class="refresh-btn" id="popup-refresh-other-limits" title="Refresh">&#x21bb;</button>
+        </div>
+        <div class="limits-content" id="other-limits-content">
           <div class="limits-loading">Loading limits...</div>
         </div>
       </div>

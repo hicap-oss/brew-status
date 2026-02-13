@@ -230,17 +230,23 @@ async function loadLimits(): Promise<void> {
     if (limits.seven_day_opus) {
       html += renderDashboardLimitBar("Opus (Weekly)", limits.seven_day_opus);
     }
-    if (limits.seven_day_cowork) {
-      html += renderDashboardLimitBar("Cowork (Weekly)", limits.seven_day_cowork);
-    }
-    if (limits.seven_day_oauth_apps) {
-      html += renderDashboardLimitBar("OAuth Apps (Weekly)", limits.seven_day_oauth_apps);
-    }
-    if (limits.extra_usage?.is_enabled && limits.extra_usage.utilization !== null) {
-      html += renderDashboardLimitBar("Extra Usage", {
-        utilization: limits.extra_usage.utilization,
-        resets_at: null,
-      });
+    html += renderDashboardLimitBar("Cowork (Weekly)", limits.seven_day_cowork ?? { utilization: 0, resets_at: null });
+    html += renderDashboardLimitBar("OAuth Apps (Weekly)", limits.seven_day_oauth_apps ?? { utilization: 0, resets_at: null });
+    if (limits.extra_usage) {
+      if (limits.extra_usage.is_enabled) {
+        html += renderDashboardLimitBar("Extra Usage", {
+          utilization: limits.extra_usage.utilization ?? 0,
+          resets_at: null,
+        });
+      } else {
+        html += `<div class="dashboard-limit-item">
+          <div class="dashboard-limit-header">
+            <span class="dashboard-limit-label">Extra Usage</span>
+            <span class="dashboard-limit-pct disabled">Off</span>
+          </div>
+          <div class="dashboard-limit-bar-track"><div class="dashboard-limit-bar-fill" style="width:0%"></div></div>
+        </div>`;
+      }
     }
 
     if (!html) {

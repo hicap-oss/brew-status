@@ -225,6 +225,11 @@ body {
   background: #ef4444;
 }
 
+.limit-pct.disabled {
+  font-size: 13px;
+  color: #6b6b8a;
+}
+
 .limit-reset {
   font-size: 10px;
   color: #6b6b8a;
