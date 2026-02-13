@@ -16,6 +16,36 @@ pub struct OAuthToken {
     pub expires_at: i64,
 }
 
+// Profile from Anthropic API
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProfileResponse {
+    pub account: AccountInfo,
+    pub organization: OrganizationInfo,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountInfo {
+    pub uuid: String,
+    pub full_name: String,
+    pub display_name: String,
+    pub email: String,
+    pub has_claude_max: bool,
+    pub has_claude_pro: bool,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationInfo {
+    pub uuid: String,
+    pub name: String,
+    pub organization_type: String,
+    pub billing_type: String,
+    pub rate_limit_tier: String,
+    pub has_extra_usage_enabled: bool,
+    pub subscription_status: String,
+    pub subscription_created_at: String,
+}
+
 // Usage limits from Anthropic API
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UsageLimits {
@@ -23,12 +53,23 @@ pub struct UsageLimits {
     pub seven_day: Option<LimitEntry>,
     pub seven_day_opus: Option<LimitEntry>,
     pub seven_day_sonnet: Option<LimitEntry>,
+    pub seven_day_cowork: Option<LimitEntry>,
+    pub seven_day_oauth_apps: Option<LimitEntry>,
+    pub extra_usage: Option<ExtraUsage>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LimitEntry {
     pub utilization: f64,
     pub resets_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtraUsage {
+    pub is_enabled: bool,
+    pub monthly_limit: Option<f64>,
+    pub used_credits: Option<f64>,
+    pub utilization: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

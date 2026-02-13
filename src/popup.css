@@ -29,10 +29,52 @@ body {
   align-items: center;
 }
 
+.popup-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .popup-header h1 {
   font-size: 14px;
   font-weight: 600;
   color: #c0c0e0;
+  white-space: nowrap;
+}
+
+.popup-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.popup-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.popup-badge.plan-max {
+  background: rgba(124, 58, 237, 0.2);
+  color: #a78bfa;
+  border: 1px solid rgba(124, 58, 237, 0.4);
+}
+
+.popup-badge.plan-pro {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.popup-badge.org {
+  background: rgba(255, 255, 255, 0.05);
+  color: #8888aa;
+  border: 1px solid #3a3a5a;
 }
 
 .date-label {

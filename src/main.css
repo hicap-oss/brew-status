@@ -33,11 +33,26 @@ body {
   flex-shrink: 0;
 }
 
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .titlebar-title {
   font-size: 13px;
   font-weight: 600;
   color: #a78bfa;
   letter-spacing: 0.3px;
+}
+
+.titlebar-profile {
+  font-size: 11px;
+  color: #6b6b8a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .titlebar-controls {
@@ -153,7 +168,7 @@ body {
 
 .dashboard-limits {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
 }
 

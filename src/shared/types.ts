@@ -64,14 +64,50 @@ export interface DailyTokenTotal {
   byModel: Record<string, number>;
 }
 
+export interface ProfileResponse {
+  account: AccountInfo;
+  organization: OrganizationInfo;
+}
+
+export interface AccountInfo {
+  uuid: string;
+  full_name: string;
+  display_name: string;
+  email: string;
+  has_claude_max: boolean;
+  has_claude_pro: boolean;
+  created_at: string;
+}
+
+export interface OrganizationInfo {
+  uuid: string;
+  name: string;
+  organization_type: string;
+  billing_type: string;
+  rate_limit_tier: string;
+  has_extra_usage_enabled: boolean;
+  subscription_status: string;
+  subscription_created_at: string;
+}
+
 export interface UsageLimits {
   five_hour: LimitEntry | null;
   seven_day: LimitEntry | null;
   seven_day_opus: LimitEntry | null;
   seven_day_sonnet: LimitEntry | null;
+  seven_day_cowork: LimitEntry | null;
+  seven_day_oauth_apps: LimitEntry | null;
+  extra_usage: ExtraUsage | null;
 }
 
 export interface LimitEntry {
   utilization: number;
   resets_at: string | null;
+}
+
+export interface ExtraUsage {
+  is_enabled: boolean;
+  monthly_limit: number | null;
+  used_credits: number | null;
+  utilization: number | null;
 }

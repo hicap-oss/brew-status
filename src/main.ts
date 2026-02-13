@@ -9,7 +9,7 @@ import {
   formatResetTime,
 } from "./shared/formatters";
 import { renderBarChart, renderHourlyHeatmap } from "./shared/chart";
-import type { StatsCache, HistoryEntry, UsageLimits, LimitEntry } from "./shared/types";
+import type { StatsCache, HistoryEntry, UsageLimits, LimitEntry, ProfileResponse } from "./shared/types";
 
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
@@ -17,6 +17,33 @@ const { getCurrentWebviewWindow } = window.__TAURI__.webviewWindow;
 
 let cachedStats: StatsCache | null = null;
 let currentMetric: "tokens" | "messages" | "toolCalls" = "tokens";
+
+async function loadProfile(): Promise<void> {
+  try {
+    const profile = await invoke<ProfileResponse>("get_profile");
+    const el = document.getElementById("titlebar-profile")!;
+
+    const parts: string[] = [];
+    const name = profile.account.display_name || profile.account.full_name;
+    if (name) parts.push(name);
+
+    if (profile.organization.name) {
+      const orgType = profile.organization.organization_type;
+      const typeLabel = orgType.includes("team") ? "Team" : orgType.includes("enterprise") ? "Enterprise" : "";
+      parts.push(typeLabel ? `${profile.organization.name} (${typeLabel})` : profile.organization.name);
+    }
+
+    if (profile.account.has_claude_max) {
+      parts.push("Max");
+    } else if (profile.account.has_claude_pro) {
+      parts.push("Pro");
+    }
+
+    el.textContent = parts.join(" \u00B7 ");
+  } catch (e) {
+    console.error("Failed to load profile:", e);
+  }
+}
 
 async function loadStats(): Promise<void> {
   try {
@@ -203,6 +230,18 @@ async function loadLimits(): Promise<void> {
     if (limits.seven_day_opus) {
       html += renderDashboardLimitBar("Opus (Weekly)", limits.seven_day_opus);
     }
+    if (limits.seven_day_cowork) {
+      html += renderDashboardLimitBar("Cowork (Weekly)", limits.seven_day_cowork);
+    }
+    if (limits.seven_day_oauth_apps) {
+      html += renderDashboardLimitBar("OAuth Apps (Weekly)", limits.seven_day_oauth_apps);
+    }
+    if (limits.extra_usage?.is_enabled && limits.extra_usage.utilization !== null) {
+      html += renderDashboardLimitBar("Extra Usage", {
+        utilization: limits.extra_usage.utilization,
+        resets_at: null,
+      });
+    }
 
     if (!html) {
       html = '<div class="limits-loading">No usage limits available</div>';
@@ -251,6 +290,7 @@ listen("stats-updated", () => loadStats());
 listen("history-updated", () => loadHistory());
 
 // Initial load
+loadProfile();
 loadStats();
 loadHistory();
 loadLimits();

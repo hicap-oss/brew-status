@@ -1,4 +1,4 @@
-use crate::models::{Credentials, HistoryEntry, StatsCache, TodaySummary, UsageLimits};
+use crate::models::{Credentials, HistoryEntry, ProfileResponse, StatsCache, TodaySummary, UsageLimits};
 use std::collections::HashMap;
 use std::fs;
 use std::io::{BufRead, BufReader};
@@ -110,8 +110,7 @@ pub fn resize_popup(app: AppHandle, height: f64) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-pub async fn get_usage_limits() -> Result<UsageLimits, String> {
+fn get_oauth_token() -> Result<String, String> {
     let creds_path = claude_dir().join(".credentials.json");
     let creds_data = fs::read_to_string(&creds_path)
         .map_err(|e| format!("Failed to read credentials: {}", e))?;
@@ -122,10 +121,17 @@ pub async fn get_usage_limits() -> Result<UsageLimits, String> {
         .claude_ai_oauth
         .ok_or_else(|| "No OAuth token found in credentials".to_string())?;
 
+    Ok(oauth.access_token)
+}
+
+#[tauri::command]
+pub async fn get_usage_limits() -> Result<UsageLimits, String> {
+    let token = get_oauth_token()?;
+
     let client = reqwest::Client::new();
     let resp = client
         .get("https://api.anthropic.com/api/oauth/usage")
-        .header("Authorization", format!("Bearer {}", oauth.access_token))
+        .header("Authorization", format!("Bearer {}", token))
         .header("anthropic-beta", "oauth-2025-04-20")
         .send()
         .await
@@ -141,4 +147,29 @@ pub async fn get_usage_limits() -> Result<UsageLimits, String> {
         .map_err(|e| format!("Failed to parse usage limits: {}", e))?;
 
     Ok(limits)
+}
+
+#[tauri::command]
+pub async fn get_profile() -> Result<ProfileResponse, String> {
+    let token = get_oauth_token()?;
+
+    let client = reqwest::Client::new();
+    let resp = client
+        .get("https://api.anthropic.com/api/oauth/profile")
+        .header("Authorization", format!("Bearer {}", token))
+        .header("anthropic-beta", "oauth-2025-04-20")
+        .send()
+        .await
+        .map_err(|e| format!("Failed to fetch profile: {}", e))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("API returned status {}", resp.status()));
+    }
+
+    let profile: ProfileResponse = resp
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse profile: {}", e))?;
+
+    Ok(profile)
 }

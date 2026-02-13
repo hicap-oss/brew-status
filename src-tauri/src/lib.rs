@@ -14,6 +14,7 @@ pub fn run() {
             commands::get_daily_token_totals,
             commands::resize_popup,
             commands::get_usage_limits,
+            commands::get_profile,
         ])
         .setup(|app| {
             let handle = app.handle().clone();

@@ -1,5 +1,5 @@
 import { formatTokenCount, formatNumber, modelDisplayName, formatResetTime } from "./shared/formatters";
-import type { TodaySummary, StatsCache, UsageLimits, LimitEntry } from "./shared/types";
+import type { TodaySummary, StatsCache, UsageLimits, LimitEntry, ProfileResponse } from "./shared/types";
 
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
@@ -42,6 +42,34 @@ async function resizePopupToContent(): Promise<void> {
     lastRequestedHeight = contentHeight;
   } catch (e) {
     console.error("Failed to resize popup:", e);
+  }
+}
+
+async function loadProfile(): Promise<void> {
+  try {
+    const profile = await invoke<ProfileResponse>("get_profile");
+
+    const nameEl = document.getElementById("popup-user-name")!;
+    nameEl.textContent = profile.account.display_name || profile.account.full_name;
+
+    const badgesEl = document.getElementById("popup-badges")!;
+    let badges = "";
+
+    if (profile.account.has_claude_max) {
+      badges += '<span class="popup-badge plan-max">Max</span>';
+    } else if (profile.account.has_claude_pro) {
+      badges += '<span class="popup-badge plan-pro">Pro</span>';
+    }
+
+    if (profile.organization.name) {
+      badges += `<span class="popup-badge org">${profile.organization.name}</span>`;
+    }
+
+    badgesEl.innerHTML = badges;
+  } catch (e) {
+    console.error("Failed to load profile:", e);
+  } finally {
+    schedulePopupResize();
   }
 }
 
@@ -126,6 +154,18 @@ async function loadLimits(): Promise<void> {
     if (limits.seven_day_opus) {
       html += renderLimitBar("Opus (Weekly)", limits.seven_day_opus);
     }
+    if (limits.seven_day_cowork) {
+      html += renderLimitBar("Cowork (Weekly)", limits.seven_day_cowork);
+    }
+    if (limits.seven_day_oauth_apps) {
+      html += renderLimitBar("OAuth Apps (Weekly)", limits.seven_day_oauth_apps);
+    }
+    if (limits.extra_usage?.is_enabled && limits.extra_usage.utilization !== null) {
+      html += renderLimitBar("Extra Usage", {
+        utilization: limits.extra_usage.utilization,
+        resets_at: null,
+      });
+    }
 
     if (!html) {
       html = '<div class="limits-loading">No usage limits available</div>';
@@ -176,6 +216,7 @@ if ("fonts" in document) {
 }
 
 // Initial load
+loadProfile();
 loadData();
 loadLimits();
 schedulePopupResize();
