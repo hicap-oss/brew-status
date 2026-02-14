@@ -70,6 +70,65 @@ fn show_popup(window: &WebviewWindow) {
     if window.move_window_constrained(Position::TrayCenter).is_err() {
         let _ = window.move_window(Position::BottomRight);
     }
+
+    // Snap popup flush against the taskbar using the work area bounds
+    #[cfg(target_os = "windows")]
+    {
+        if let (Ok(pos), Ok(size)) = (window.outer_position(), window.outer_size()) {
+            if let Some(work_bottom) = get_work_area_bottom(pos.x, pos.y) {
+                let y = work_bottom - size.height as i32;
+                let _ = window.set_position(tauri::PhysicalPosition::new(pos.x, y));
+            }
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+pub fn get_work_area_bottom(x: i32, y: i32) -> Option<i32> {
+    #[repr(C)]
+    struct RECT {
+        left: i32,
+        top: i32,
+        right: i32,
+        bottom: i32,
+    }
+
+    #[repr(C)]
+    struct MONITORINFO {
+        cb_size: u32,
+        rc_monitor: RECT,
+        rc_work: RECT,
+        dw_flags: u32,
+    }
+
+    #[repr(C)]
+    struct POINT {
+        x: i32,
+        y: i32,
+    }
+
+    type HMONITOR = isize;
+
+    extern "system" {
+        fn MonitorFromPoint(pt: POINT, dw_flags: u32) -> HMONITOR;
+        fn GetMonitorInfoW(h_monitor: HMONITOR, lpmi: *mut MONITORINFO) -> i32;
+    }
+
+    const MONITOR_DEFAULTTONEAREST: u32 = 2;
+
+    let monitor = unsafe { MonitorFromPoint(POINT { x, y }, MONITOR_DEFAULTTONEAREST) };
+    if monitor == 0 {
+        return None;
+    }
+
+    let mut info: MONITORINFO = unsafe { std::mem::zeroed() };
+    info.cb_size = std::mem::size_of::<MONITORINFO>() as u32;
+
+    if unsafe { GetMonitorInfoW(monitor, &mut info) } != 0 {
+        Some(info.rc_work.bottom)
+    } else {
+        None
+    }
 }
 
 fn create_popup(app: &AppHandle) {

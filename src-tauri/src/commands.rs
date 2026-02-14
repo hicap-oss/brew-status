@@ -305,6 +305,17 @@ pub fn resize_popup(app: AppHandle, height: f64) -> Result<(), String> {
         {
             let _ = window.move_window(Position::BottomRight);
         }
+
+        // Snap popup flush against the taskbar
+        #[cfg(target_os = "windows")]
+        {
+            if let (Ok(pos), Ok(size)) = (window.outer_position(), window.outer_size()) {
+                if let Some(work_bottom) = crate::tray::get_work_area_bottom(pos.x, pos.y) {
+                    let y = work_bottom - size.height as i32;
+                    let _ = window.set_position(tauri::PhysicalPosition::new(pos.x, y));
+                }
+            }
+        }
     }
 
     Ok(())
