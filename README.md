@@ -23,11 +23,20 @@ Download the latest release from [Releases](https://github.com/hicap-oss/brew-st
 - **Windows:** `.msi` installer
 - **macOS (Apple Silicon):** `.dmg` (unsigned test build)
 
-For unsigned macOS test builds, if Gatekeeper blocks launch:
+For unsigned macOS test builds, install from the `.dmg` by dragging `brew-status.app` to `/Applications`.
 
-1. Open **System Settings > Privacy & Security**.
-2. Under the blocked app message, click **Open Anyway**.
-3. Confirm launch from the follow-up dialog.
+If macOS shows `"brew-status" is damaged and can't be opened`, clear quarantine and launch:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/brew-status.app"
+open "/Applications/brew-status.app"
+```
+
+If it still fails, run the binary directly once to print the real error:
+
+```sh
+"/Applications/brew-status.app/Contents/MacOS/brew-status"
+```
 
 ## How It Works
 
