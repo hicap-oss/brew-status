@@ -56,25 +56,35 @@ fn now_secs() -> u64 {
         .as_secs()
 }
 
-fn check_file_path() -> Option<std::path::PathBuf> {
-    dirs::data_dir().map(|d| d.join("com.brewstatus.app").join("last_update_check"))
+fn check_file_path(identifier: &str) -> Option<std::path::PathBuf> {
+    dirs::data_dir().map(|d| d.join(identifier).join("last_update_check"))
 }
 
 fn should_check() -> bool {
-    let Some(path) = check_file_path() else {
+    let Some(primary_path) = check_file_path("com.brewstatus") else {
         return true;
     };
-    match fs::read_to_string(&path) {
+
+    match fs::read_to_string(&primary_path) {
         Ok(contents) => {
-            let last: u64 = contents.trim().parse().unwrap_or(0);
-            now_secs().saturating_sub(last) >= 86400
+            let last_primary: u64 = contents.trim().parse().unwrap_or(0);
+            now_secs().saturating_sub(last_primary) >= 86400
         }
-        Err(_) => true,
+        Err(_) => match check_file_path("com.brewstatus.app") {
+            Some(legacy_path) => match fs::read_to_string(legacy_path) {
+                Ok(contents) => {
+                    let last_legacy: u64 = contents.trim().parse().unwrap_or(0);
+                    now_secs().saturating_sub(last_legacy) >= 86400
+                }
+                Err(_) => true,
+            },
+            None => true,
+        }
     }
 }
 
 fn write_check_timestamp() {
-    if let Some(path) = check_file_path() {
+    if let Some(path) = check_file_path("com.brewstatus") {
         if let Some(parent) = path.parent() {
             let _ = fs::create_dir_all(parent);
         }
