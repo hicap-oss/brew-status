@@ -14,9 +14,16 @@ import type { StatsCache, HistoryEntry, UsageLimits, LimitEntry, ProfileResponse
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 const { getCurrentWebviewWindow } = window.__TAURI__.webviewWindow;
+const isMacOS =
+  navigator.userAgent.includes("Mac OS X") ||
+  navigator.platform.toLowerCase().includes("mac");
 
 let cachedStats: StatsCache | null = null;
 let currentMetric: "tokens" | "messages" | "toolCalls" = "tokens";
+
+if (isMacOS) {
+  document.body.classList.add("platform-macos");
+}
 
 async function loadProfile(): Promise<void> {
   try {
@@ -260,16 +267,18 @@ async function loadLimits(): Promise<void> {
   }
 }
 
-// Titlebar controls
-document.getElementById("btn-minimize")!.addEventListener("click", async () => {
-  const win = getCurrentWebviewWindow();
-  await win.minimize();
-});
+// Titlebar controls (not used on macOS when native traffic lights are shown)
+if (!isMacOS) {
+  document.getElementById("btn-minimize")!.addEventListener("click", async () => {
+    const win = getCurrentWebviewWindow();
+    await win.minimize();
+  });
 
-document.getElementById("btn-close")!.addEventListener("click", async () => {
-  const win = getCurrentWebviewWindow();
-  await win.close();
-});
+  document.getElementById("btn-close")!.addEventListener("click", async () => {
+    const win = getCurrentWebviewWindow();
+    await win.close();
+  });
+}
 
 // About panel
 async function loadAbout(): Promise<void> {

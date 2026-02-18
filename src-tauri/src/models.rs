@@ -4,6 +4,7 @@ use std::collections::HashMap;
 // OAuth credentials from ~/.claude/.credentials.json
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(target_os = "macos", allow(dead_code))]
 pub struct Credentials {
     pub claude_ai_oauth: Option<OAuthToken>,
 }
@@ -11,6 +12,7 @@ pub struct Credentials {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[allow(dead_code)]
+#[cfg_attr(target_os = "macos", allow(dead_code))]
 pub struct OAuthToken {
     pub access_token: String,
     pub expires_at: i64,

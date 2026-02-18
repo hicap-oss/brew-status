@@ -1,13 +1,13 @@
 # Brew Status
 
-A Windows system tray app for monitoring your Claude Code usage in real time. See token consumption, rate limits, session stats, and activity trends at a glance.
+A Windows and macOS tray/menu bar app for monitoring your Claude Code usage in real time. See token consumption, rate limits, session stats, and activity trends at a glance.
 
 ![Built with Tauri](https://img.shields.io/badge/Built_with-Tauri_2-FFC131?logo=tauri)
-![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?logo=windows)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS_(Apple%20Silicon)-0078D4)
 
 ## Features
 
-- **System Tray** - Lives in your tray. Left-click for a quick popup, right-click for menu.
+- **System Tray / Menu Bar** - Lives in your tray (Windows) or top menu bar (macOS). Left-click for a quick popup, right-click for menu.
 - **Live Rate Limits** - Track your session, weekly, Sonnet, and Opus quotas with color-coded progress bars (green/yellow/red) and reset countdowns.
 - **Token Breakdown** - See input, output, cache read, and cache creation tokens per model (Opus, Sonnet, Haiku).
 - **Activity Charts** - 7-day bar chart (tokens, messages, or tool calls) and a 24-hour activity heatmap.
@@ -18,16 +18,27 @@ A Windows system tray app for monitoring your Claude Code usage in real time. Se
 
 ## Install
 
-Download the latest `.msi` installer from [Releases](https://github.com/hicap-oss/brew-status/releases/latest).
+Download the latest release from [Releases](https://github.com/hicap-oss/brew-status/releases/latest):
+
+- **Windows:** `.msi` installer
+- **macOS (Apple Silicon):** `.dmg` (unsigned test build)
+
+For unsigned macOS test builds, if Gatekeeper blocks launch:
+
+1. Open **System Settings > Privacy & Security**.
+2. Under the blocked app message, click **Open Anyway**.
+3. Confirm launch from the follow-up dialog.
 
 ## How It Works
 
-Brew Status reads data that Claude Code already writes to your `~/.claude/` directory:
+Brew Status reads data that Claude Code already writes:
 
-- **`stats-cache.json`** for aggregated usage statistics
-- **`history.jsonl`** for recent conversation history
-- **Session files** under `projects/` for today's token counts
-- **`.credentials.json`** OAuth token to fetch live rate limits from the Anthropic API
+- **`~/.claude/history.jsonl`** for recent conversation history
+- **Session files** under `~/.claude/projects/` for usage aggregation
+- **`~/.claude/stats-cache.json`** when available (older/newer clients may omit this)
+- **OAuth token source for live limits/profile:**
+  - macOS: Claude Desktop token cache decrypted with macOS Keychain (`Claude Safe Storage`)
+  - Windows/Linux: `~/.claude/.credentials.json`
 
 A file watcher detects changes and pushes updates to the UI in real time.
 
@@ -58,7 +69,7 @@ pnpm tauri dev
 pnpm tauri build
 ```
 
-Produces an `.msi` installer in `src-tauri/target/release/bundle/`.
+Produces platform bundles in `src-tauri/target/release/bundle/` (for example, `.msi` on Windows and `.dmg`/`.app` on macOS).
 
 ## Tech Stack
 

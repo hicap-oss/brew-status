@@ -85,6 +85,15 @@ body {
   color: #fff;
 }
 
+body.platform-macos .titlebar {
+  display: none;
+}
+
+body.platform-macos .app {
+  border: none;
+  border-radius: 0;
+}
+
 /* Dashboard layout */
 .dashboard {
   display: grid;

@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  release_windows:
     runs-on: windows-latest
     permissions:
       contents: write
@@ -38,14 +38,59 @@ jobs:
         with:
           workspaces: src-tauri
 
-      - name: Build and release
+      - name: Build and release (Windows)
         uses: tauri-apps/tauri-action@v0.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
           releaseName: Brew Status v__VERSION__
-          releaseBody: "Download the `.msi` installer below to install Brew Status."
+          releaseBody: "Download the installers below to install Brew Status on Windows or macOS."
           releaseDraft: false
           prerelease: false
           updaterJsonPreferNsis: true
+
+  release_macos:
+    runs-on: macos-14
+    needs: release_windows
+    permissions:
+      contents: write
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build and release (macOS ARM64)
+        uses: tauri-apps/tauri-action@v0.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Brew Status v__VERSION__
+          releaseBody: "Download the installers below to install Brew Status on Windows or macOS."
+          releaseDraft: false
+          prerelease: false
+          args: --target aarch64-apple-darwin

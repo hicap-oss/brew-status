@@ -29,6 +29,12 @@ pub fn run() {
         ])
         .setup(|app| {
             let handle = app.handle().clone();
+
+            #[cfg(target_os = "macos")]
+            {
+                let _ = app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            }
+
             tray::setup_tray(&handle)?;
             watcher::start_watcher(handle.clone());
 
@@ -87,7 +93,10 @@ pub async fn prompt_install(update: tauri_plugin_updater::Update, handle: tauri:
         ))
         .title("Update Available")
         .kind(MessageDialogKind::Info)
-        .buttons(MessageDialogButtons::OkCancelCustom("Install".into(), "Later".into()))
+        .buttons(MessageDialogButtons::OkCancelCustom(
+            "Install".into(),
+            "Later".into(),
+        ))
         .show(move |confirmed| {
             let _ = sender.send(confirmed);
         });

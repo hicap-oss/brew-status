@@ -17,10 +17,14 @@ pub fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
         .item(&quit_item)
         .build()?;
 
-    let icon = Image::from_bytes(include_bytes!("../icons/32x32.png"))
+    #[cfg(target_os = "macos")]
+    let icon = Image::from_bytes(include_bytes!("../icons/trayTemplate.png"))
         .expect("Failed to load tray icon");
+    #[cfg(not(target_os = "macos"))]
+    let icon =
+        Image::from_bytes(include_bytes!("../icons/32x32.png")).expect("Failed to load tray icon");
 
-    TrayIconBuilder::new()
+    let tray_builder = TrayIconBuilder::new()
         .icon(icon)
         .tooltip("Brew Status - Claude Code Usage")
         .show_menu_on_left_click(false)
@@ -37,18 +41,38 @@ pub fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
         .on_tray_icon_event(|tray, event| {
             tauri_plugin_positioner::on_tray_event(tray.app_handle(), &event);
 
-            if let tauri::tray::TrayIconEvent::Click {
-                button: tauri::tray::MouseButton::Left,
-                button_state: tauri::tray::MouseButtonState::Down,
-                ..
-            } = event
-            {
+            if should_toggle_on_click(&event) {
                 toggle_popup(tray.app_handle());
             }
-        })
-        .build(app)?;
+        });
+
+    #[cfg(target_os = "macos")]
+    let tray_builder = tray_builder.icon_as_template(true);
+
+    tray_builder.build(app)?;
 
     Ok(())
+}
+
+fn should_toggle_on_click(event: &tauri::tray::TrayIconEvent) -> bool {
+    match event {
+        tauri::tray::TrayIconEvent::Click {
+            button: tauri::tray::MouseButton::Left,
+            button_state,
+            ..
+        } => {
+            #[cfg(target_os = "macos")]
+            {
+                matches!(button_state, tauri::tray::MouseButtonState::Up)
+            }
+
+            #[cfg(not(target_os = "macos"))]
+            {
+                matches!(button_state, tauri::tray::MouseButtonState::Down)
+            }
+        }
+        _ => false,
+    }
 }
 
 fn toggle_popup(app: &AppHandle) {
@@ -60,14 +84,20 @@ fn toggle_popup(app: &AppHandle) {
 }
 
 fn show_popup(window: &WebviewWindow) {
-    if window.move_window_constrained(Position::TrayCenter).is_err() {
+    if window
+        .move_window_constrained(Position::TrayCenter)
+        .is_err()
+    {
         let _ = window.move_window(Position::BottomRight);
     }
 
     let _ = window.show();
     let _ = window.set_focus();
 
-    if window.move_window_constrained(Position::TrayCenter).is_err() {
+    if window
+        .move_window_constrained(Position::TrayCenter)
+        .is_err()
+    {
         let _ = window.move_window(Position::BottomRight);
     }
 
@@ -165,14 +195,15 @@ pub fn show_main_window(app: &AppHandle) {
         let _ = window.show();
         let _ = window.set_focus();
     } else {
-        let window =
+        let builder =
             WebviewWindowBuilder::new(app, "main", WebviewUrl::App("src/main.html".into()))
                 .title("Brew Status - Claude Code Dashboard")
                 .inner_size(900.0, 680.0)
                 .min_inner_size(700.0, 500.0)
-                .decorations(false)
-                .visible(true)
-                .build();
+                .decorations(cfg!(target_os = "macos"))
+                .visible(true);
+
+        let window = builder.build();
 
         if let Ok(win) = window {
             let _ = win.set_focus();
